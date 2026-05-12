@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -114,6 +115,18 @@ export default function App() {
     fetchSuitability("Mojave Desert, CA");
   }, []);
 
+  if (!data && !error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-8 animate-bounce shadow-2xl shadow-emerald-500/20">
+          <Zap className="w-10 h-10 text-zinc-950" fill="currentColor" />
+        </div>
+        <h2 className="text-2xl font-black text-white mb-2">Initializing SustainScan</h2>
+        <p className="text-zinc-500 text-sm max-w-xs font-medium uppercase tracking-widest">Calibrating meteorological datasets...</p>
+      </div>
+    );
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
@@ -195,7 +208,7 @@ export default function App() {
         {/* Map Container (2x2) */}
         <div className="md:col-span-2 md:row-span-2 bg-zinc-900 rounded-[2.5rem] border border-zinc-800 relative overflow-hidden group shadow-xl">
           <div className="absolute inset-0 z-0">
-             {data ? (
+             {data?.location?.lat !== undefined && data?.location?.lon !== undefined ? (
                 <MapContainer 
                   center={[data.location.lat, data.location.lon]} 
                   zoom={10} 
@@ -224,7 +237,7 @@ export default function App() {
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-wrap gap-2 justify-end">
-            {data?.location.isUrban ? (
+            {data?.location?.isUrban ? (
               <div className="px-3 py-1.5 bg-zinc-950/80 backdrop-blur-md border border-zinc-800 rounded-xl flex items-center gap-2">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
                 <span className="text-[10px] text-zinc-400 font-bold uppercase">Dense Urban Area</span>
@@ -237,7 +250,7 @@ export default function App() {
             )}
             <div className={cn(
               "px-3 py-1.5 border rounded-xl text-[10px] font-bold uppercase tracking-wider backdrop-blur-md",
-              data?.scores.solar.rating === 'Excellent' ? "bg-amber-500/20 border-amber-500/50 text-amber-400" : "bg-zinc-800/50 border-zinc-700 text-zinc-400"
+              data?.scores?.solar?.rating === 'Excellent' ? "bg-amber-500/20 border-amber-500/50 text-amber-400" : "bg-zinc-800/50 border-zinc-700 text-zinc-400"
             )}>
               Solar Focus
             </div>

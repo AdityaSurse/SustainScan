@@ -1,24 +1,16 @@
-import express from "express";
-import axios from "axios";
-import serverless from "serverless-http";
-
-const app = express();
-app.use(express.json());
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import axios from 'axios';
 
 const axiosConfig = {
   headers: {
-    'User-Agent': 'SustainScan-Deployment-Vercel/1.1 (adityasurse42@gmail.com)',
+    'User-Agent': 'SustainScan-Vercel-Function/1.2 (adityasurse42@gmail.com)',
     'Accept': 'application/json'
   },
-  timeout: 8000 // 8 second timeout to avoid Vercel termination without response
+  timeout: 9000
 };
 
-// API Routes
-app.get("/api/health", (req, res) => res.json({ status: "ok", timestamp: new Date().toISOString() }));
-
-app.get("/api/suitability", async (req, res) => {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { lat, lon, city } = req.query;
-  console.log(`Analyzing: lat=${lat}, lon=${lon}, city=${city}`);
   
   let coords = { lat: Number(lat), lon: Number(lon) };
   
@@ -28,13 +20,12 @@ app.get("/api/suitability", async (req, res) => {
     // 1. Geocoding if city is provided
     if (city && (!lat || !lon)) {
       const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city as string)}&limit=1`;
-      console.log(`Geocoding with Nominatim: ${geoUrl}`);
       const geoRes = await axios.get(geoUrl, axiosConfig);
       if (geoRes.data && geoRes.data.length > 0) {
         coords.lat = Number(geoRes.data[0].lat);
         coords.lon = Number(geoRes.data[0].lon);
       } else {
-        return res.status(404).json({ error: "City not found. Try coordinates if it's a remote area." });
+        return res.status(404).json({ error: "City not found" });
       }
     }
 
@@ -44,12 +35,10 @@ app.get("/api/suitability", async (req, res) => {
 
     // 2. Fetch NASA POWER Data
     const nasaUrl = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN,WS50M&community=RE&longitude=${coords.lon}&latitude=${coords.lat}&start=20230101&end=20231231&format=JSON`;
-    console.log(`Fetching NASA POWER data: ${nasaUrl}`);
     const nasaRes = await axios.get(nasaUrl, axiosConfig);
     
     const properties = nasaRes.data?.properties?.parameter;
     if (!properties || !properties.ALLSKY_SFC_SW_DWN || !properties.WS50M) {
-      console.error("Incomplete NASA data", nasaRes.data);
       return res.status(502).json({ error: "Incomplete meteorological data received from NASA." });
     }
 
@@ -57,7 +46,7 @@ app.get("/api/suitability", async (req, res) => {
     const windValues = Object.values(properties.WS50M as Record<string, number>).filter(v => v !== null && v !== undefined && v > -100);
 
     if (solarValues.length === 0 || windValues.length === 0) {
-      return res.status(502).json({ error: "Insufficient valid data points for this location (NASA returned null/missing values)." });
+      return res.status(502).json({ error: "Insufficient valid data for this location." });
     }
 
     const avgSolarIrradiance = solarValues.reduce((a, b) => a + b, 0) / solarValues.length;
@@ -84,11 +73,11 @@ app.get("/api/suitability", async (req, res) => {
     const hybridEfficiency = (solarScore / 6 + effectiveWindSpeed / 8) / 2 * 100;
     const gridReliability = isUrban ? 85 : 60;
 
-    res.json({
+    return res.json({
       location: {
         lat: coords.lat,
         lon: coords.lon,
-        name: reverseGeo.data?.display_name || "Custom Boundary",
+        name: reverseGeo.data?.display_name || "Calculated Point",
         isUrban
       },
       scores: {
@@ -101,9 +90,6 @@ app.get("/api/suitability", async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch energy data" });
+    return res.status(500).json({ error: "Server error while fetching energy metrics." });
   }
-});
-
-export const apiApp = app;
-export const handler = serverless(app);
+}

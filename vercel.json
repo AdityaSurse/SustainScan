@@ -1,7 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/suitability", "destination": "/api/handler.ts" },
+    { "source": "/api/suitability", "destination": "/api/suitability.ts" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
