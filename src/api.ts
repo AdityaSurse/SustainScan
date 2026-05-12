@@ -43,11 +43,11 @@ app.get("/api/suitability", async (req, res) => {
       return res.status(502).json({ error: "Incomplete meteorological data received from NASA." });
     }
 
-    const solarValues = Object.values(properties.ALLSKY_SFC_SW_DWN as Record<string, number>);
-    const windValues = Object.values(properties.WS50M as Record<string, number>);
+    const solarValues = Object.values(properties.ALLSKY_SFC_SW_DWN as Record<string, number>).filter(v => v !== null && v !== undefined && v > -100);
+    const windValues = Object.values(properties.WS50M as Record<string, number>).filter(v => v !== null && v !== undefined && v > -100);
 
     if (solarValues.length === 0 || windValues.length === 0) {
-      return res.status(502).json({ error: "Empty datasets received for this location." });
+      return res.status(502).json({ error: "Insufficient valid data points for this location (NASA returned null/missing values)." });
     }
 
     const avgSolarIrradiance = solarValues.reduce((a, b) => a + b, 0) / solarValues.length;

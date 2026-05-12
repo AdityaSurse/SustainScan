@@ -55,7 +55,9 @@ L.Icon.Default.mergeOptions({
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, 10);
+    if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+       map.setView(center, map.getZoom());
+    }
   }, [center, map]);
   return null;
 }
@@ -121,10 +123,10 @@ export default function App() {
       {
         label: 'Suitability Profile',
         data: data ? [
-          Math.min(100, parseFloat(data.scores.solar.value || '0') * 10),
-          Math.min(100, parseFloat(data.scores.wind.value || '0') * 10),
-          data.scores.gridReliability || 50,
-          data.location.isUrban ? 30 : 90
+          Math.min(100, parseFloat(data.scores?.solar?.value || '0') * 10),
+          Math.min(100, parseFloat(data.scores?.wind?.value || '0') * 10),
+          data.scores?.gridReliability || 0,
+          data.location?.isUrban ? 30 : 90
         ] : [0, 0, 0, 0],
         backgroundColor: 'rgba(16, 185, 129, 0.2)',
         borderColor: '#10b981',
@@ -252,11 +254,11 @@ export default function App() {
           </div>
           <div>
             <div className="flex items-baseline gap-1">
-              <h2 className="text-5xl font-black text-white">{data?.scores.solar.value || "---"}</h2>
+              <h2 className="text-5xl font-black text-white">{data?.scores?.solar?.value || "---"}</h2>
               <span className="text-sm font-bold text-zinc-600 uppercase">PSH</span>
             </div>
             <p className="text-[11px] text-amber-400 mt-2 font-black uppercase tracking-tight">
-              {data?.scores.solar.rating || "Analyzing"} Suitability
+              {data?.scores?.solar?.rating || "---"} Suitability
             </p>
           </div>
         </motion.div>
@@ -276,11 +278,11 @@ export default function App() {
           </div>
           <div>
             <div className="flex items-baseline gap-1">
-              <h2 className="text-5xl font-black text-white">{data?.scores.wind.value || "---"}</h2>
+              <h2 className="text-5xl font-black text-white">{data?.scores?.wind?.value || "---"}</h2>
               <span className="text-sm font-bold text-zinc-600 uppercase">m/s</span>
             </div>
             <p className="text-[11px] text-sky-400 mt-2 font-black uppercase tracking-tight">
-              {data?.scores.wind.rating || "Analyzing"} Potential
+              {data?.scores?.wind?.rating || "---"} Potential
             </p>
           </div>
         </motion.div>
