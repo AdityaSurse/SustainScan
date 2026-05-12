@@ -121,11 +121,11 @@ export default function App() {
       {
         label: 'Suitability Profile',
         data: data ? [
-          parseFloat(data.scores.solar.value) * 1.5, // Normalized for radar
-          parseFloat(data.scores.wind.value) * 1.2,
-          data.scores.gridReliability * 0.8,
+          Math.min(100, parseFloat(data.scores.solar.value || '0') * 10),
+          Math.min(100, parseFloat(data.scores.wind.value || '0') * 10),
+          data.scores.gridReliability || 50,
           data.location.isUrban ? 30 : 90
-        ] : [60, 50, 80, 40],
+        ] : [0, 0, 0, 0],
         backgroundColor: 'rgba(16, 185, 129, 0.2)',
         borderColor: '#10b981',
         borderWidth: 2,

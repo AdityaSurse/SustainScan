@@ -37,12 +37,21 @@ app.get("/api/suitability", async (req, res) => {
     const nasaUrl = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN,WS50M&community=RE&longitude=${coords.lon}&latitude=${coords.lat}&start=20230101&end=20231231&format=JSON`;
     const nasaRes = await axios.get(nasaUrl, axiosConfig);
     
-    const properties = nasaRes.data.properties.parameter;
-    const solarData = Object.values(properties.ALLSKY_SFC_SW_DWN as Record<string, number>);
-    const windData = Object.values(properties.WS50M as Record<string, number>);
+    const properties = nasaRes.data?.properties?.parameter;
+    if (!properties || !properties.ALLSKY_SFC_SW_DWN || !properties.WS50M) {
+      console.error("Incomplete NASA data", nasaRes.data);
+      return res.status(502).json({ error: "Incomplete meteorological data received from NASA." });
+    }
 
-    const avgSolarIrradiance = solarData.reduce((a, b) => a + b, 0) / solarData.length;
-    const avgWindSpeed = windData.reduce((a, b) => a + b, 0) / windData.length;
+    const solarValues = Object.values(properties.ALLSKY_SFC_SW_DWN as Record<string, number>);
+    const windValues = Object.values(properties.WS50M as Record<string, number>);
+
+    if (solarValues.length === 0 || windValues.length === 0) {
+      return res.status(502).json({ error: "Empty datasets received for this location." });
+    }
+
+    const avgSolarIrradiance = solarValues.reduce((a, b) => a + b, 0) / solarValues.length;
+    const avgWindSpeed = windValues.reduce((a, b) => a + b, 0) / windValues.length;
 
     // 3. Land Use Check
     const reverseGeo = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords.lat}&lon=${coords.lon}`, axiosConfig);
