@@ -80,6 +80,17 @@ Upload your project to a GitHub repository.
 ### 3. Environment Variables
 If you eventually add private API keys, go to **Site settings** > **Environment variables** in Netlify to add them securely.
 
+## 🌐 Deployment to Vercel (Alternative)
+
+This project is also optimized for **Vercel**.
+
+1. Push your code to GitHub.
+2. Log in to [Vercel](https://vercel.com).
+3. Click "Add New" > "Project".
+4. Import your GitHub repository.
+5. Vercel will automatically detect Vite and the serverless functions in the `api/` folder.
+6. Click **"Deploy"**.
+
 ---
 ## 📜 License
 This project is licensed under the Apache-2.0 License.
