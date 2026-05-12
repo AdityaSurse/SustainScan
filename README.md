@@ -60,6 +60,27 @@ Where:
    npm run dev
    ```
 
+## 🌐 Deployment to Netlify
+
+This project is pre-configured for one-click deployment to Netlify.
+
+### 1. Push to GitHub
+Upload your project to a GitHub repository.
+
+### 2. Connect to Netlify
+1. Log in to [Netlify](https://www.netlify.com/).
+2. Click **"Add new site"** > **"Import an existing project"**.
+3. Select your GitHub repository.
+4. Netlify will automatically detect the settings:
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `dist`
+   - **Functions Directory**: `netlify/functions`
+5. Click **"Deploy site"**.
+
+### 3. Environment Variables
+If you eventually add private API keys, go to **Site settings** > **Environment variables** in Netlify to add them securely.
+
+---
 ## 📜 License
 This project is licensed under the Apache-2.0 License.
 
