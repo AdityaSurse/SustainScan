@@ -1,0 +1,6 @@
+{
+  "name": "SustainScan: Renewable Energy Suitability Finder",
+  "description": "A geospatial tool for evaluating solar and wind energy potential based on NASA meteorological data, featuring a bento grid interface with interactive charts and maps.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
