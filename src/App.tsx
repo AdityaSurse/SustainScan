@@ -55,11 +55,33 @@ L.Icon.Default.mergeOptions({
 // Component to handle map centering
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
+  
   useEffect(() => {
     if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-       map.setView(center, map.getZoom());
+       // Using flyTo for a cinematic, smooth transition
+       map.flyTo(center, 10, {
+         animate: true,
+         duration: 2.0,
+         easeLinearity: 0.25
+       });
     }
   }, [center, map]);
+
+  useEffect(() => {
+    // Invalidate size handles container resize and visibility issues
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    
+    const timeout = setTimeout(handleResize, 300);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeout);
+    };
+  }, [map]);
+
   return null;
 }
 
@@ -142,7 +164,7 @@ export default function App() {
         data: data ? [
           Math.min(100, parseFloat(data.scores?.solar?.value || '0') * 10),
           Math.min(100, parseFloat(data.scores?.wind?.value || '0') * 10),
-          data.scores?.gridReliability || 0,
+          Number(data.scores?.gridReliability) || 0,
           data.location?.isUrban ? 30 : 90
         ] : [0, 0, 0, 0],
         backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -207,13 +229,14 @@ export default function App() {
         
         {/* Map Container (2x2) */}
         <div className="md:col-span-2 md:row-span-2 bg-zinc-900 rounded-[2.5rem] border border-zinc-800 relative overflow-hidden group shadow-xl">
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 h-full w-full">
              {data?.location?.lat !== undefined && data?.location?.lon !== undefined ? (
                 <MapContainer 
                   center={[data.location.lat, data.location.lon]} 
                   zoom={10} 
                   zoomControl={false}
                   className="h-full w-full"
+                  style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0 }}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
