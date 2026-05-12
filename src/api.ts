@@ -16,6 +16,8 @@ app.get("/api/suitability", async (req, res) => {
   const { lat, lon, city } = req.query;
   
   let coords = { lat: Number(lat), lon: Number(lon) };
+  
+  res.setHeader('Content-Type', 'application/json');
 
   try {
     // 1. Geocoding if city is provided

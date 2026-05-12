@@ -97,7 +97,11 @@ export default function App() {
       }
       
       const response = await axios.get(url);
-      setData(response.data);
+      if (response.data && response.data.error) {
+        setError(response.data.error);
+      } else {
+        setData(response.data);
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || "Failed to fetch data. Please try another location.");
     } finally {
@@ -215,7 +219,7 @@ export default function App() {
             <MapPin className="w-3.5 h-3.5 text-emerald-400" />
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-zinc-500 uppercase leading-none mb-0.5">Active Location</span>
-              <span className="text-xs font-semibold text-zinc-200 line-clamp-1">{data?.location.name.split(',')[0] || "Identifying..."}</span>
+              <span className="text-xs font-semibold text-zinc-200 line-clamp-1">{data?.location?.name?.split(',')[0] || "Identifying..."}</span>
             </div>
           </div>
 
@@ -331,14 +335,14 @@ export default function App() {
                 stroke="#10b981" 
                 strokeWidth="12" 
                 strokeDasharray={`${2 * Math.PI * 58}`} 
-                strokeDashoffset={`${(2 * Math.PI * 58) * (1 - (data?.scores.hybrid || 0) / 100)}`} 
+                strokeDashoffset={`${(2 * Math.PI * 58) * (1 - (data?.scores?.hybrid ?? 0) / 100)}`} 
                 fill="transparent" 
                 strokeLinecap="round" 
                 className="transition-all duration-1000 ease-out"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-white leading-none">{data?.scores.hybrid || "---"}%</span>
+              <span className="text-3xl font-black text-white leading-none">{data?.scores?.hybrid ?? "---"}%</span>
             </div>
           </div>
           <div className="w-full">
